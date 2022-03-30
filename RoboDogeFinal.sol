@@ -585,7 +585,7 @@ contract RoboDogeFinalCoin is Context, IERC20, Ownable {
 
     //3 Level Halt Mechanism
 
-    uint256 public currentLowestPrice;
+    uint256 public currentHaltThresholdPrice;
 
     enum HaltLevelStatus{
         LEVEL0,
@@ -1150,7 +1150,7 @@ contract RoboDogeFinalCoin is Context, IERC20, Ownable {
     function executePriceDeclineHalt(uint256 currentPrice,uint256 referencePrice) external onlyOwner returns(bool){
         uint256 percentDecline;
         if(currentHaltLevel != HaltLevelStatus.LEVEL0){
-            referencePrice = currentLowestPrice;
+            referencePrice = currentHaltThresholdPrice;
         }
 
         if(currentPrice < referencePrice){
@@ -1161,7 +1161,7 @@ contract RoboDogeFinalCoin is Context, IERC20, Ownable {
                     //set Level index halt   
                     currentHaltPeriod = block.timestamp + halts[1].haltLevelPeriod;
                     currentHaltLevel = halts[1].haltLevel;
-                    currentLowestPrice = currentPrice;
+                    currentHaltThresholdPrice = currentPrice;
                     return true;
                 }
                 return false;
@@ -1173,7 +1173,7 @@ contract RoboDogeFinalCoin is Context, IERC20, Ownable {
                 if(percentDecline >= halts[1].haltLevelPercentage){
                     currentHaltPeriod = block.timestamp + halts[1].haltLevelPeriod;
                     currentHaltLevel = halts[1].haltLevel;
-                    currentLowestPrice = currentPrice;
+                    currentHaltThresholdPrice = currentPrice;
                     return true;
                 }
                 return false;
@@ -1182,13 +1182,13 @@ contract RoboDogeFinalCoin is Context, IERC20, Ownable {
             else{
                 for( uint i=1;i<3;i++ ){
                     if(uint(currentHaltLevel) == i ){
-                        percentDecline = checkPercent(currentPrice,currentLowestPrice);
+                        percentDecline = checkPercent(currentPrice,currentHaltThresholdPrice);
                         if(percentDecline >= halts[i+1].haltLevelPercentage){
                             //set Level index halt 
                             
                             currentHaltPeriod = block.timestamp + halts[i+1].haltLevelPeriod;
                             currentHaltLevel = halts[i+1].haltLevel;
-                            currentLowestPrice = currentPrice;
+                            currentHaltThresholdPrice = currentPrice;
 
                             return true;
                         }
