@@ -1158,17 +1158,18 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
     }
     //to be removed
 
-    function executePriceDeclineHalt(uint256 currentPrice,uint256 referencePrice) public returns(bool){
+    function executePriceDeclineHalt(uint256 currentPrice,uint256 referencePrice) external onlyOwner returns(bool){
            uint256 percentDecline;
            if(currentPrice < referencePrice){
             
-            if(currentHaltLevel == HaltLevelStatus.LEVEL3 ){
-                currentHaltPeriod = halts[1].haltLevelPeriod;
-                currentHaltLevel = HaltLevelStatus.LEVEL1;
-                currentLowestPrice = halts[3].currentLevelPrice;
-                return true;
-            }
-            if(currentHaltLevel == HaltLevelStatus.LEVEL0){
+                if(currentHaltLevel == HaltLevelStatus.LEVEL3 ){
+                    //add percentage check
+                    currentHaltPeriod = block.timestamp + halts[1].haltLevelPeriod;
+                    currentHaltLevel = HaltLevelStatus.LEVEL1;
+                    currentLowestPrice = halts[3].currentLevelPrice;
+                    return true;
+                }
+                if(currentHaltLevel == HaltLevelStatus.LEVEL0){
                 percentDecline = checkPercent(currentPrice,referencePrice);
                 if(percentDecline >= halts[1].haltLevelPercentage){
                //set Level index halt   
