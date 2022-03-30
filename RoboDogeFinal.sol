@@ -602,7 +602,6 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
 
     struct HaltLevel{
         HaltLevelStatus haltLevel;
-        uint256 currentLevelPrice;
         uint256 haltLevelPercentage;
         uint256 haltLevelPeriod;
     }
@@ -1136,9 +1135,9 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
     }
 //to be discusssed 
     function setHaltPeriods(uint256[3] memory _periods) external onlyOwner {
-        halts[1].haltLevelPeriod = _periods[0];
-        halts[2].haltLevelPeriod = _periods[1];
-        halts[3].haltLevelPeriod = _periods[2];
+        halts[1].haltLevelPeriod = _periods[0] * 1 seconds;
+        halts[2].haltLevelPeriod = _periods[1] * 1 seconds;
+        halts[3].haltLevelPeriod = _periods[2]  * 1 seconds;
 
     }
 
@@ -1158,52 +1157,65 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
     }
     //to be removed
 
+
+    function isHalted() external view returns(bool){
+        return currentHaltPeriod >= block.timestamp ;
+    }
+
     function executePriceDeclineHalt(uint256 currentPrice,uint256 referencePrice) external onlyOwner returns(bool){
-           uint256 percentDecline;
-           if(currentPrice < referencePrice){
+        uint256 percentDecline;
+        if(currentHaltLevel != HaltLevelStatus.LEVEL0){
+            referencePrice = currentLowestPrice;
+        }
+
+        if(currentPrice < referencePrice){
             
-                if(currentHaltLevel == HaltLevelStatus.LEVEL3 ){
-                    //add percentage check
-                    if(percentDecline >= halts[2].haltLevelPercentage){
+            if(currentHaltLevel == HaltLevelStatus.LEVEL0){
+                percentDecline = checkPercent(currentPrice,referencePrice);
+                if(percentDecline >= halts[1].haltLevelPercentage){
+                    //set Level index halt   
                     currentHaltPeriod = block.timestamp + halts[1].haltLevelPeriod;
-                    currentHaltLevel = HaltLevelStatus.LEVEL1;
-                    currentLowestPrice = halts[3].currentLevelPrice;
+                    currentHaltLevel = halts[1].haltLevel;
+                    currentLowestPrice = currentPrice;
                     return true;
                 }
                 return false;
-                }
-                if(currentHaltLevel == HaltLevelStatus.LEVEL0){
+            }
+            
+            if(currentHaltLevel == HaltLevelStatus.LEVEL3 ){
+                //add percentage check
                 percentDecline = checkPercent(currentPrice,referencePrice);
                 if(percentDecline >= halts[1].haltLevelPercentage){
-               //set Level index halt   
-               currentHaltPeriod = block.timestamp + halts[1].haltLevelPeriod;
-               currentHaltLevel = halts[1].haltLevel;
-               halts[1].currentLevelPrice = currentPrice;
-               return true;
+                    currentHaltPeriod = block.timestamp + halts[1].haltLevelPeriod;
+                    currentHaltLevel = halts[1].haltLevel;
+                    currentLowestPrice = currentPrice;
+                    return true;
+                }
+                return false;
             }
-
-            }
+            
             else{
-            for( uint i=1;i<3;i++ ){
-                if(uint(currentHaltLevel) == i ){
-                   percentDecline = checkPercent(currentPrice,halts[i].currentLevelPrice);
-                    if(percentDecline >= halts[i+1].haltLevelPercentage){
-               //set Level index halt 
-               
-               currentHaltPeriod = block.timestamp + halts[i+1].haltLevelPeriod;
-               currentHaltLevel = halts[i+1].haltLevel;
-               halts[i+1].currentLevelPrice = currentPrice;
+                for( uint i=1;i<3;i++ ){
+                    if(uint(currentHaltLevel) == i ){
+                        percentDecline = checkPercent(currentPrice,currentLowestPrice);
+                        if(percentDecline >= halts[i+1].haltLevelPercentage){
+                            //set Level index halt 
+                            
+                            currentHaltPeriod = block.timestamp + halts[i+1].haltLevelPeriod;
+                            currentHaltLevel = halts[i+1].haltLevel;
+                            currentLowestPrice = currentPrice;
 
-               return true;
-            }
-            }
+                            return true;
+                        }
+                    }
 
-            }
-            return false;
+                }
+                return false;
             }
         }
         return false;
     }
+
 
 
 
