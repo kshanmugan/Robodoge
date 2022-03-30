@@ -540,7 +540,7 @@ contract Ownable is Context {
     }
 }
 
-contract RoboDogeCoin is Context, IERC20, Ownable {
+contract RoboDogeFinalCoin is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -585,9 +585,7 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
 
     //3 Level Halt Mechanism
 
-    uint256 public allTimeHighPrice;//ATH
-
-    uint256 public currentLowestPrice;//Current Lowest price
+    uint256 public currentLowestPrice;
 
     enum HaltLevelStatus{
         LEVEL0,
@@ -1119,12 +1117,6 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
     }
 
 
-    //halt level functions
-
-    // function initHaltLevels() internal{
-    //     currentHaltLevel = 
-    // }
-
     function initHaltPercentageLevels() internal{
         halts[1].haltLevelPercentage = 15;
         halts[2].haltLevelPercentage = 10;
@@ -1133,30 +1125,23 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
         halts[2].haltLevel = HaltLevelStatus(2);
         halts[3].haltLevel = HaltLevelStatus(3);
     }
-//to be discusssed 
+
+    function setHaltPercentages(uint256[3] memory _percentages) external onlyOwner{
+        halts[1].haltLevelPercentage = _percentages[0];
+        halts[2].haltLevelPercentage = _percentages[1];
+        halts[3].haltLevelPercentage = _percentages[2];
+    }
+ 
     function setHaltPeriods(uint256[3] memory _periods) external onlyOwner {
-        halts[1].haltLevelPeriod = _periods[0] * 1 seconds;
-        halts[2].haltLevelPeriod = _periods[1] * 1 seconds;
-        halts[3].haltLevelPeriod = _periods[2]  * 1 seconds;
+        halts[1].haltLevelPeriod = _periods[0] ;
+        halts[2].haltLevelPeriod = _periods[1] ;
+        halts[3].haltLevelPeriod = _periods[2] ;
 
     }
-
-    // function setAllTimeHighPrice(uint256 _newPrice) public onlyOwner{
-    //     allTimeHighPrice = _newPrice;
-    // }
-
-    // function checkPriceDeclined(uint256 currentPrice,uint256 referencePrice,uint256 _percentage_decline) public pure returns (bool){
-    //     return currentPrice < (referencePrice - referencePrice.mul(_percentage_decline).div(100));
-    // }
-
-
-    //to be removed 
 
     function checkPercent(uint256 currentPrice,uint256 referencePrice) internal pure returns (uint256){
         return ((referencePrice.sub(currentPrice)).mul(100)).div(referencePrice);
     }
-    //to be removed
-
 
     function isHalted() external view returns(bool){
         return currentHaltPeriod >= block.timestamp ;
@@ -1215,12 +1200,6 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
         }
         return false;
     }
-
-
-
-
-
-    //function checkPriceDeclined
 
     // Copied and modified from YAM code:
     // https://github.com/yam-finance/yam-protocol/blob/master/contracts/token/YAMGovernanceStorage.sol
