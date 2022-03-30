@@ -1127,14 +1127,14 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
     // }
 
     function initHaltPercentageLevels() internal{
-        halts[1].haltLevelPercentage = 10;
-        halts[2].haltLevelPercentage = 15;
-        halts[3].haltLevelPercentage = 15;
+        halts[1].haltLevelPercentage = 15;
+        halts[2].haltLevelPercentage = 10;
+        halts[3].haltLevelPercentage = 10;
         halts[1].haltLevel = HaltLevelStatus(1);
         halts[2].haltLevel = HaltLevelStatus(2);
         halts[3].haltLevel = HaltLevelStatus(3);
     }
-
+//to be discusssed 
     function setHaltPeriods(uint256[3] memory _periods) external onlyOwner {
         halts[1].haltLevelPeriod = _periods[0];
         halts[2].haltLevelPeriod = _periods[1];
@@ -1142,18 +1142,18 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
 
     }
 
-    function setAllTimeHighPrice(uint256 _newPrice) public onlyOwner{
-        allTimeHighPrice = _newPrice;
-    }
+    // function setAllTimeHighPrice(uint256 _newPrice) public onlyOwner{
+    //     allTimeHighPrice = _newPrice;
+    // }
 
-    function checkPriceDeclined(uint256 currentPrice,uint256 referencePrice,uint256 _percentage_decline) public pure returns (bool){
-        return currentPrice < (referencePrice - referencePrice.mul(_percentage_decline).div(100));
-    }
+    // function checkPriceDeclined(uint256 currentPrice,uint256 referencePrice,uint256 _percentage_decline) public pure returns (bool){
+    //     return currentPrice < (referencePrice - referencePrice.mul(_percentage_decline).div(100));
+    // }
 
 
     //to be removed 
 
-    function checkPercent(uint256 currentPrice,uint256 referencePrice) public pure returns (uint256){
+    function checkPercent(uint256 currentPrice,uint256 referencePrice) internal pure returns (uint256){
         return ((referencePrice.sub(currentPrice)).mul(100)).div(referencePrice);
     }
     //to be removed
@@ -1164,10 +1164,13 @@ contract RoboDogeCoin is Context, IERC20, Ownable {
             
                 if(currentHaltLevel == HaltLevelStatus.LEVEL3 ){
                     //add percentage check
+                    if(percentDecline >= halts[2].haltLevelPercentage){
                     currentHaltPeriod = block.timestamp + halts[1].haltLevelPeriod;
                     currentHaltLevel = HaltLevelStatus.LEVEL1;
                     currentLowestPrice = halts[3].currentLevelPrice;
                     return true;
+                }
+                return false;
                 }
                 if(currentHaltLevel == HaltLevelStatus.LEVEL0){
                 percentDecline = checkPercent(currentPrice,referencePrice);
